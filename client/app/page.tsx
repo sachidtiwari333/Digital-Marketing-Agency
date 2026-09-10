@@ -1,12 +1,12 @@
 import { Hero } from "@/components/web/hero";
-import { Services } from "@/components/web/services";
-
+import { Navbar } from "@/components/web/navbar";
+import Image from "next/image";
 
 export default function Home() {
   return (
     <>
-    <Hero></Hero>
-    <Services></Services>
+      <Navbar />
+      <Hero />
     </>
   );
 }
