@@ -28,12 +28,6 @@ const leadSchema = new mongoose.Schema({
   message : {
     type : String,
     required : true
-  },
-  status : {
-    type : String
-  },
-  createdAt : {
-    type : Date.now()
   }
 
 }, {timestamps : true})

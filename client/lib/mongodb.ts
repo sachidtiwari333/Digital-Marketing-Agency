@@ -1,12 +1,12 @@
 import mongoose from "mongoose"
 
-export default async function connectDB(){
+  const connectDB = async ()=>{
   try{
-    const connectionInstance = await mongoose.connect(`${process.env.MONGO_URI}`)
-    console.log("MONGODB CONNECTION SUCCESSFUL !!!", connectionInstance.connection.host);
-    
-  }catch(err){
-    console.error("MONGODB CONNECTION FAILED !!!", err)
+    const connectionInstance = await mongoose.connect(`${process.env.MONGO_URI}/benextdigital`)
+    console.log(`MONGO CONNECTED !! DB HOST ${connectionInstance.connection.host}`);
+  }catch(error){
+    console.error("MONGODB CONNECTION FAILED !!!", error)
     process.exit(1)
   }
 }
+export default connectDB
