@@ -2,6 +2,16 @@ import { Service } from "../models/service.models";
 import { Request, Response } from "express";
 import { uploadCloudinaryImage } from "../utils/cloudnary";
 
+const getServices = async(req: Request, res : Response) => {
+  const services = await Service.find()
+  return res.status(200).json({
+    message : "All work is fetched sucessfully",
+    totalSercices : services.length,
+    data : services
+
+  })
+}
+
 const addService = async (req: Request, res: Response) => {
   const { name, description } = req.body;
 
@@ -91,4 +101,4 @@ const editService = async (req : Request, res : Response) => {
     updatedService
   })
 }
-export { addService, deleteService, editService };
+export {getServices, addService, deleteService, editService };
