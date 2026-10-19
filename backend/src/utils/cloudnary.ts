@@ -23,4 +23,18 @@ const uploadCloudinaryImage = async (LocalFileName: string) => {
   }
 };
 
-export { uploadCloudinaryImage };
+const uploadCloudinaryVideo = async (LocalFileName : string) =>{
+  if(!LocalFileName) return null
+  try{
+    const response = await cloudinary.uploader.upload(LocalFileName,{
+      resource_type : "video"
+    })
+    console.log("File uploaded", response.url)
+    return response
+  }catch(err){
+    fs.unlinkSync(LocalFileName)
+    console.log(err)
+    return null
+  }
+}
+export { uploadCloudinaryImage, uploadCloudinaryVideo};
