@@ -9,7 +9,20 @@ const teamSchema = new mongoose.Schema({
     type : String,
     required : true
   },
-  avatarurl : {
+  email : {
+    type : String,
+    required : true,
+    lowercase : true,
+    unique : true,
+    trim : true
+  },
+  number : {
+    type : Number,
+    required : true,
+    unique : true,
+    trim : true
+  },
+  avatarUrl : {
     type : String,
     required : true
   }
