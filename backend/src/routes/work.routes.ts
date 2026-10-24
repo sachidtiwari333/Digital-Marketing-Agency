@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { addWrok, deleteWork, editWork, getWorks } from "../controllers/work.controllers";
+import { addWork, deleteWork, editWork, getWorks } from "../controllers/work.controllers";
 import { upload } from "../middlewares/multer.middlewares";
 
 const workRouter =  Router()
 workRouter.get('/works', getWorks)
 
-workRouter.post('/add-work',upload.fields([{name : "image", maxCount : 1},{name : "video", maxCount : 1}]), addWrok)
+workRouter.post('/add-work',upload.fields([{name : "image", maxCount : 1},{name : "video", maxCount : 1}]), addWork)
 
-workRouter.delete('/delete', deleteWork)
+workRouter.delete('/delete/:workId', deleteWork)
 
-workRouter.patch('/edit', upload.fields([{name : "image", maxCount : 1},{name : "video", maxCount : 1}]), editWork) 
+workRouter.patch('/edit/:workId', upload.fields([{name : "image", maxCount : 1},{name : "video", maxCount : 1}]), editWork) 
 
 export default workRouter

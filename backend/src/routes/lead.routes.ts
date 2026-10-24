@@ -7,6 +7,6 @@ leadRouter.get('/leads', getLeads)
 
 leadRouter.post('/add', addLead)
 
-leadRouter.delete('/delete', deleteLead)
+leadRouter.delete('/delete/:leadId', deleteLead)
 
 export  default leadRouter

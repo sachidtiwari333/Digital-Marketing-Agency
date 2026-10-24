@@ -1,4 +1,3 @@
-
 import { Request, Response } from "express";
 import { Lead } from "../models/lead.models";
 import mongoose from "mongoose";

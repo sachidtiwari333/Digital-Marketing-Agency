@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Team } from "../models/team.models";
 import { uploadCloudinaryImage } from "../utils/cloudnary";
+import mongoose from "mongoose";
 
 const getTeamMembers = async (req: Request, res: Response) => {
   try {
@@ -24,9 +25,12 @@ const addTeamMember = async (req: Request, res: Response) => {
         message: "all data is required",
       });
     }
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = files?.image?.[0]?.path;
+
     const image = await uploadCloudinaryImage(`${imageLocalPath}`);
     if (!image) {
       return res.status(400).json({
@@ -59,25 +63,22 @@ const addTeamMember = async (req: Request, res: Response) => {
 
 const deleteTeamMember = async (req: Request, res: Response) => {
   try {
-    const { teamMemberId } = req.body;
-    if (!teamMemberId) {
+    const { memberId } = req.params;
+    if (!memberId) {
       return res.status(400).json({
         message: "Team member id is required",
       });
     }
-
-    const teamMember = await Team.findById(teamMemberId);
-    if (!teamMember) {
+    if (!mongoose.isValidObjectId(memberId)) {
       return res.status(400).json({
-        message: "this is Team member is does not exist",
+        message: "Invalid member Id",
       });
     }
-
-    const isdeleted = await Team.findByIdAndDelete(teamMemberId);
+    const isdeleted = await Team.findByIdAndDelete(memberId);
 
     if (!isdeleted) {
-      return res.status(400).json({
-        message: "Something went wrong",
+      return res.status(404).json({
+        message: "Team member not found",
       });
     }
     return res.status(200).json({
@@ -92,35 +93,56 @@ const deleteTeamMember = async (req: Request, res: Response) => {
 
 const editTeamMember = async (req: Request, res: Response) => {
   try {
-    const { teamMemberId, name, post, email, number } = req.body;
+    const { memberId } = req.params;
+    const { name, post, email, number } = req.body;
 
-    if (!name || !post || !number || !email || !teamMemberId) {
+    if (!name || !post || !number || !email || !memberId) {
       return res.status(400).json({
         message: "all data iis required is required",
       });
     }
+    if (!mongoose.isValidObjectId(memberId)) {
+      return res.status(400).json({
+        message: "Invalid member Id",
+      });
+    }
 
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
-    const image = await uploadCloudinaryImage(`${imageLocalPath}`);
-    if (!image) {
-      return res.status(400).json({
-        message: "image upload failed",
+    const member = await Team.findById(memberId);
+
+    if (!member) {
+      return res.status(404).json({
+        message: "Member not found",
       });
     }
-    const updatedTeamMember = await Team.findByIdAndUpdate(teamMemberId, {
-      name,
-      post,
-      number,
-      email,
-      avatarUrl: image.secure_url,
-    });
-    if (!updatedTeamMember) {
-      return res.status(400).json({
-        message: "Some went wrong",
-      });
+    if (name !== undefined) {
+      member.name = name;
     }
+    if (post !== undefined) {
+      member.post = post;
+    }
+    if (email !== undefined) {
+      member.email = email;
+    }
+    if (number !== undefined) {
+      member.number = number;
+    }
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = files?.image?.[0]?.path;
+
+    if (imageLocalPath) {
+      const image = await uploadCloudinaryImage(`${imageLocalPath}`);
+      if (!image) {
+        return res.status(400).json({
+          message: "image upload failed",
+        });
+      }
+      member.avatarUrl = image.secure_url;
+    }
+    const updatedTeamMember = await member.save();
+
     return res.status(201).json({
       message: "Team member is updated",
       updatedTeamMember: updatedTeamMember,

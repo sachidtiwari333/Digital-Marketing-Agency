@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Testimonial } from "../models/testimonial.models";
+import mongoose from "mongoose";
 
 const getTestimonials = async (req: Request, res: Response) => {
   try {
@@ -47,16 +48,21 @@ const addTestimonials = async (req: Request, res: Response) => {
 
 const deleteTestimonials = async (req: Request, res: Response) => {
   try {
-    const { testimonialId } = req.body;
+    const { testimonialId } = req.params;
     if (!testimonialId) {
       return res.status(400).json({
         message: "Testimonials id is required",
       });
     }
+    if (!mongoose.isValidObjectId(testimonialId)) {
+      return res.status(400).json({
+        message: "Invalid member Id",
+      });
+    }
     const isdeleted = await Testimonial.findByIdAndDelete(testimonialId);
     if (!isdeleted) {
-      return res.status(400).json({
-        message: "Failed to delete",
+      return res.status(404).json({
+        message: "Testimonial not found",
       });
     }
     return res.status(200).json({
@@ -71,25 +77,35 @@ const deleteTestimonials = async (req: Request, res: Response) => {
 
 const editTestimonials = async (req: Request, res: Response) => {
   try {
-    const { name, username, message, testimonialId } = req.body;
+    const { testimonialId } = req.params;
+    const { name, username, message } = req.body;
     if (!testimonialId) {
       return res.status(400).json({
         message: "Testimonials id is required",
       });
     }
-    const testimonial = await Testimonial.findByIdAndUpdate(testimonialId, {
-      name,
-      username,
-      message,
-    });
-    if (!testimonial) {
+    if (!mongoose.isValidObjectId(testimonialId)) {
       return res.status(400).json({
-        message: "Something went wrong",
+        message: "Invalid member Id",
+      });
+    }
+    const updatedTestimonial = await Testimonial.findByIdAndUpdate(
+      testimonialId,
+      {
+        name,
+        username,
+        message,
+      },
+      { new: true, runValidators: true },
+    );
+    if (!updatedTestimonial) {
+      return res.status(404).json({
+        message: "Testimonial not found",
       });
     }
     return res.status(201).json({
       message: "Testimonial updated successfully",
-      data: testimonial,
+      data: updatedTestimonial,
     });
   } catch (error) {
     return res.status(400).json({

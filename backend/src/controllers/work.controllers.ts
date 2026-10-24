@@ -4,6 +4,7 @@ import {
   uploadCloudinaryImage,
   uploadCloudinaryVideo,
 } from "../utils/cloudnary";
+import mongoose from "mongoose";
 
 const getWorks = async (req: Request, res: Response) => {
   try {
@@ -20,7 +21,7 @@ const getWorks = async (req: Request, res: Response) => {
   }
 };
 
-const addWrok = async (req: Request, res: Response) => {
+const addWork = async (req: Request, res: Response) => {
   try {
     const { topic, client, service, description } = req.body;
     if (!topic || !client || !service || !description) {
@@ -29,18 +30,23 @@ const addWrok = async (req: Request, res: Response) => {
       });
     }
 
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
+    const imagefiles = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = imagefiles?.image?.[0]?.path;
     const image = await uploadCloudinaryImage(`${imageLocalPath}`);
     if (!image) {
       return res.status(400).json({
         message: "image upload failed",
       });
     }
-    const videoLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).video?.[0]?.path;
+    const videofiles = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const videoLocalPath = videofiles?.video?.[0]?.path;
+
     const video = await uploadCloudinaryVideo(`${videoLocalPath}`);
     if (!video) {
       return res.status(400).json({
@@ -73,22 +79,21 @@ const addWrok = async (req: Request, res: Response) => {
 
 const deleteWork = async (req: Request, res: Response) => {
   try {
-    const { workId } = req.body;
+    const { workId } = req.params;
     if (!workId) {
       return res.status(400).json({
         message: "Work Id is required",
       });
     }
-    const isexist = await Work.findById(workId);
-    if (!isexist) {
-      return res.status(409).json({
-        message: "Work Does not exist",
+    if (!mongoose.isValidObjectId(workId)) {
+      return res.status(400).json({
+        message: "Work id is invalid",
       });
     }
     const isdeleted = await Work.findByIdAndDelete(workId);
     if (!isdeleted) {
-      return res.status(400).json({
-        message: "Work delete failed",
+      return res.status(404).json({
+        message: "Work not found",
       });
     }
     return res.status(200).json({
@@ -103,50 +108,80 @@ const deleteWork = async (req: Request, res: Response) => {
 
 const editWork = async (req: Request, res: Response) => {
   try {
-    const { workId, topic, client, service, description } = req.body;
+    const { workId } = req.params;
+    const { topic, client, service, description } = req.body;
     if (!workId) {
       return res.status(400).json({
         message: "Work Id is required",
       });
     }
-    const isexist = await Work.findById(workId);
-    if (!isexist) {
-      return res.status(409).json({
-        message: "Work Does not exist",
-      });
-    }
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
-
-    const image = await uploadCloudinaryImage(`${imageLocalPath}`);
-
-    if (!image) {
+    if (!mongoose.isValidObjectId(workId)) {
       return res.status(400).json({
-        message: "Image upload failed",
+        message: "Work id is invalid",
       });
     }
 
-    const videoLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).video?.[0]?.path;
-    const video = await uploadCloudinaryVideo(`${videoLocalPath}`);
-    if (!video) {
-      return res.status(400).json({
-        message: "video upload failed",
+    const work = await Work.findById(workId);
+
+    if (!work) {
+      return res.status(404).json({
+        message: "Work not found",
       });
     }
-    const updatedWrok = await Work.findByIdAndUpdate(workId, {
-      topic,
-      client,
-      service,
-      description,
-      imageUrl: image.secure_url,
-      videoUrl: video.secure_url,
-    });
+
+    if (topic !== undefined) {
+      work.topic = topic;
+    }
+
+    if (client !== undefined) {
+      work.client = client;
+    }
+
+    if (service !== undefined) {
+      work.service = service;
+    }
+
+    if (description !== undefined) {
+      work.description = description;
+    }
+
+    const imagefiles = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = imagefiles?.image?.[0]?.path;
+
+    if (imageLocalPath) {
+      const image = await uploadCloudinaryImage(`${imageLocalPath}`);
+      if (!image) {
+        return res.status(400).json({
+          message: "image upload failed",
+        });
+      }
+      work.imageUrl = image.secure_url;
+    }
+
+    const videofiles = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const videoLocalPath = videofiles?.video?.[0]?.path;
+
+    if (videoLocalPath) {
+      const video = await uploadCloudinaryVideo(`${videoLocalPath}`);
+      if (!video) {
+        return res.status(400).json({
+          message: "video upload failed",
+        });
+      }
+      work.videoUrl = video.secure_url;
+    }
+
+    const updatedWork = await work.save();
+
     return res.status(200).json({
-      message: "Wrok edited sucessfully",
-      updatedWrok,
+      message: "Work edited successfully",
+      data: updatedWork,
     });
   } catch (error) {
     return res.status(400).json({
@@ -155,4 +190,4 @@ const editWork = async (req: Request, res: Response) => {
   }
 };
 
-export { getWorks, addWrok, deleteWork, editWork };
+export { getWorks, addWork, deleteWork, editWork };

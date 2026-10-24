@@ -1,6 +1,7 @@
 import { Service } from "../models/service.models";
 import { Request, Response } from "express";
 import { uploadCloudinaryImage } from "../utils/cloudnary";
+import mongoose from "mongoose";
 
 const getServices = async (req: Request, res: Response) => {
   try {
@@ -26,9 +27,11 @@ const addService = async (req: Request, res: Response) => {
         message: "Service data is required",
       });
     }
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = files?.image?.[0]?.path;
 
     const image = await uploadCloudinaryImage(`${imageLocalPath}`);
 
@@ -55,26 +58,25 @@ const addService = async (req: Request, res: Response) => {
 
 const deleteService = async (req: Request, res: Response) => {
   try {
-    const { serviceId } = req.body;
+    const { serviceId } = req.params;
     if (!serviceId) {
       return res.status(400).json({
         message: "Service Id is required",
       });
     }
-    const isexist = await Service.findById(serviceId);
-    if (!isexist) {
-      return res.status(409).json({
-        message: "Service Does not exist",
+    if (!mongoose.isValidObjectId(serviceId)) {
+      return res.status(400).json({
+        message: "Invalid service id",
       });
     }
     const isdeleted = await Service.findByIdAndDelete(serviceId);
     if (!isdeleted) {
-      return res.status(400).json({
-        message: "Service delete failed",
+      return res.status(404).json({
+        message: "Service not found",
       });
     }
     return res.status(200).json({
-      message: "Service deleted sucessfully",
+      message: "Service deleted successfully",
     });
   } catch (error) {
     return res.status(400).json({
@@ -85,35 +87,55 @@ const deleteService = async (req: Request, res: Response) => {
 
 const editService = async (req: Request, res: Response) => {
   try {
-    const { serviceId, name, description } = req.body;
+    const { serviceId } = req.params;
+    const { name, description } = req.body;
     if (!serviceId) {
       return res.status(400).json({
         message: "Service Id is required",
       });
     }
-    const isexist = await Service.findById(serviceId);
-    if (!isexist) {
-      return res.status(409).json({
-        message: "Service Does not exist",
-      });
-    }
-    const imageLocalPath = (
-      req.files as { [fieldname: string]: Express.Multer.File[] }
-    ).image?.[0]?.path;
 
-    const image = await uploadCloudinaryImage(`${imageLocalPath}`);
-
-    if (!image) {
+    if (!mongoose.isValidObjectId(serviceId)) {
       return res.status(400).json({
-        message: "Image upload failed",
+        message: "Invalid service Id",
       });
     }
 
-    const updatedService = await Service.findByIdAndUpdate(serviceId, {
-      name,
-      description,
-      imageurl: image.secure_url,
-    });
+    const service = await Service.findById(serviceId);
+
+    if (!service) {
+      return res.status(404).json({
+        message: "Service not found",
+      });
+    }
+
+    if (name !== undefined) {
+      service.name = name;
+    }
+
+    if (description !== undefined) {
+      service.description = description;
+    }
+
+    const files = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+
+    const imageLocalPath = files?.image?.[0]?.path;
+
+    if (imageLocalPath) {
+      const image = await uploadCloudinaryImage(`${imageLocalPath}`);
+
+      if (!image) {
+        return res.status(400).json({
+          message: "Image upload failed",
+        });
+      }
+      service.imageurl = image.secure_url;
+    }
+
+    const updatedService = await service.save();
+
     return res.status(200).json({
       message: "service edited sucessfully",
       updatedService,

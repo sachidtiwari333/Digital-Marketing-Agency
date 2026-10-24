@@ -6,8 +6,8 @@ testimonialRouter.get('/works', getTestimonials)
 
 testimonialRouter.post('/add-work', addTestimonials)
 
-testimonialRouter.delete('/delete', deleteTestimonials)
+testimonialRouter.delete('/delete/:testimonialId', deleteTestimonials)
 
-testimonialRouter.patch('/edit',  editTestimonials) 
+testimonialRouter.patch('/edit/:testimonialId',  editTestimonials) 
 
 export default testimonialRouter
