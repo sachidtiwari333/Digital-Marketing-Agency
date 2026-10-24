@@ -12,7 +12,7 @@ const leadSchema = new mongoose.Schema({
     lowercase : true,
     trim : true
   },
-  phone : {
+  number : {
     type : Number,
     required : true,
     unique : true

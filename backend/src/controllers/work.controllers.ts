@@ -11,6 +11,7 @@ const getWorks = async(req: Request, res : Response) => {
 
   })
 }
+
 const addWrok = async(req : Request, res : Response)=>{
   const {topic, client, service, description} = req.body
   if(!topic || !client || !service || !description){
@@ -53,7 +54,6 @@ const addWrok = async(req : Request, res : Response)=>{
     data : work
   })
 }
-
 
 const deleteWork = async (req : Request, res : Response) => {
   const {workId} = req.body
@@ -125,4 +125,5 @@ const editWork = async (req : Request, res : Response) => {
   })
 
 }
+
 export {getWorks, addWrok, deleteWork, editWork}
