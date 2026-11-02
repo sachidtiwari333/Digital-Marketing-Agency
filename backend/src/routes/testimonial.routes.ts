@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addTestimonials, deleteTestimonials, editTestimonials, getTestimonials } from "../controllers/testimonial.controllers";
+import { addTestimonials, deleteTestimonials, editTestimonials, getTestimonials } from "../controllers/testimonial.controller";
 
 const testimonialRouter =  Router()
 testimonialRouter.get('/works', getTestimonials)

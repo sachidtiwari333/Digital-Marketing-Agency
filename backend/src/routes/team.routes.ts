@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addTeamMember, deleteTeamMember, editTeamMember, getTeamMembers } from "../controllers/team.controllers";
+import { addTeamMember, deleteTeamMember, editTeamMember, getTeamMembers } from "../controllers/team.controller";
 import { upload } from "../middlewares/multer.middlewares";
 
 const teamRouter = Router()

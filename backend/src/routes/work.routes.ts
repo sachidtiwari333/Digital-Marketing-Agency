@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { addWork, deleteWork, editWork, getWorks } from "../controllers/work.controllers";
+import { addWork, deleteWork, editWork, getWorks } from "../controllers/work.controller";
 import { upload } from "../middlewares/multer.middlewares";
 
 const workRouter =  Router()

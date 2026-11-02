@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { upload } from "../middlewares/multer.middlewares";
-import { addService, deleteService, editService, getServices } from "../controllers/service.controllers";
+import { addService, deleteService, editService, getServices } from "../controllers/service.controller";
 const serviceRouter = Router()
 serviceRouter.get('/services', getServices)
 
